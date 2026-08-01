@@ -135,6 +135,61 @@ export function MissionPanel() {
         </div>
       </div>
 
+      {/* Simulation controls — placed right below status, ordered by priority */}
+      <div className="bg-card border border-border rounded-lg overflow-hidden">
+        <div className="px-4 py-2.5 border-b border-border">
+          <p className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/50">
+            Acciones
+          </p>
+        </div>
+        <div className="p-3 flex flex-col gap-2">
+          {/* 1. Primary action */}
+          {phase === "idle" && (
+            <button
+              onClick={startMission}
+              className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] transition-all font-semibold text-sm py-2.5 rounded-md"
+            >
+              <Play className="w-3.5 h-3.5 fill-current" />
+              Iniciar misión
+            </button>
+          )}
+
+          {phase === "completed" && (
+            <div className="bg-primary/8 border border-primary/20 rounded-md p-2.5 text-center">
+              <p className="text-xs text-primary font-semibold">Misión completada</p>
+            </div>
+          )}
+
+          {/* 2. Contingency / warning action */}
+          {isRunning && (
+            <button
+              onClick={simulateBlock}
+              disabled={blockSimulated}
+              className={cn(
+                "w-full flex items-center justify-center gap-2 text-sm py-2 rounded-md border font-medium transition-all active:scale-[0.98]",
+                blockSimulated
+                  ? "border-border text-muted-foreground/40 cursor-not-allowed"
+                  : "border-amber-500/30 text-amber-400 hover:bg-amber-500/8 hover:border-amber-500/50"
+              )}
+            >
+              <AlertTriangle className="w-3.5 h-3.5" />
+              {blockSimulated ? "Bloqueo simulado" : "Simular bloqueo"}
+            </button>
+          )}
+
+          {/* 3. Tertiary / destructive-neutral action, always last */}
+          {(isRunning || phase === "blocked" || phase === "completed") && (
+            <button
+              onClick={resetSimulation}
+              className="w-full flex items-center justify-center gap-2 text-[12px] text-muted-foreground/50 hover:text-muted-foreground transition-colors py-1.5 rounded-md hover:bg-white/[0.03]"
+            >
+              <RotateCcw className="w-3 h-3" />
+              Reiniciar simulación
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Intersections */}
       <div className="bg-card border border-border rounded-lg overflow-hidden">
         <div className="px-4 py-2.5 border-b border-border">
@@ -155,58 +210,6 @@ export function MissionPanel() {
               <TrafficLightBadge state={int.state} size="xs" />
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* Simulation controls */}
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <div className="px-4 py-2.5 border-b border-border">
-          <p className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/50">
-            Simulación
-          </p>
-        </div>
-        <div className="p-3 flex flex-col gap-2">
-          {phase === "idle" && (
-            <button
-              onClick={startMission}
-              className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] transition-all font-semibold text-sm py-2.5 rounded-md"
-            >
-              <Play className="w-3.5 h-3.5 fill-current" />
-              Iniciar misión
-            </button>
-          )}
-
-          {isRunning && (
-            <button
-              onClick={simulateBlock}
-              disabled={blockSimulated}
-              className={cn(
-                "w-full flex items-center justify-center gap-2 text-sm py-2 rounded-md border font-medium transition-all active:scale-[0.98]",
-                blockSimulated
-                  ? "border-border text-muted-foreground/40 cursor-not-allowed"
-                  : "border-amber-500/30 text-amber-400 hover:bg-amber-500/8 hover:border-amber-500/50"
-              )}
-            >
-              <AlertTriangle className="w-3.5 h-3.5" />
-              {blockSimulated ? "Bloqueo simulado" : "Simular bloqueo"}
-            </button>
-          )}
-
-          {(isRunning || phase === "blocked" || phase === "completed") && (
-            <button
-              onClick={resetSimulation}
-              className="w-full flex items-center justify-center gap-2 text-[12px] text-muted-foreground/50 hover:text-muted-foreground transition-colors py-1.5 rounded-md hover:bg-white/[0.03]"
-            >
-              <RotateCcw className="w-3 h-3" />
-              Reiniciar simulación
-            </button>
-          )}
-
-          {phase === "completed" && (
-            <div className="bg-primary/8 border border-primary/20 rounded-md p-2.5 text-center">
-              <p className="text-xs text-primary font-semibold">Misión completada</p>
-            </div>
-          )}
         </div>
       </div>
 

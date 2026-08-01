@@ -71,10 +71,12 @@ export interface SimulationState {
   timeline: TimelineEvent[];
   etaHistory: ETAPoint[];
   blockSimulated: boolean;
+  emergencyWaveActive: boolean;
 
   // actions
   startMission: () => void;
   simulateBlock: () => void;
+  activateEmergencyWave: () => void;
   resetSimulation: () => void;
   tick: () => void;
 }
@@ -121,7 +123,7 @@ const INTERSECTIONS_INITIAL: Intersection[] = [
 const SEGMENTS_INITIAL: RouteSegment[] = [
   {
     id: "s0",
-    label: "HECA → Bv. Oroño",
+    label: "Centenario → Bv. Oroño",
     from: "origin",
     to: "int1",
     blocked: false,
@@ -230,7 +232,12 @@ const SEGMENT_DURATIONS_ALT = [8, 12, 22, 16]; // bypass s2, goes s0→s1→s2al
 // Real-world reference duration the compressed sim maps onto, so the ETA chart
 // is displayed in meaningful minutes:seconds instead of the 48s sim clock.
 const REAL_TOTAL_SECONDS = 502; // 8m 22s optimized real mission
-const BLOCK_ETA_PENALTY = 45; // extra seconds added to ETA while a block is active
+const BLOCK_ETA_PENALTY = 110; // extra seconds added to ETA while a block is active
+
+// Contingency barometer tolerance bands (projected TOTAL trip seconds)
+export const ETA_TARGET = REAL_TOTAL_SECONDS; // óptimo: <= objetivo (8m 22s)
+export const ETA_TOLERABLE_MAX = 560; // tolerable: hasta ~9m 20s
+export const ETA_CRITICAL_MAX = 640; // crítico: referencia sin coordinación (10m 40s)
 
 // How many seconds before reaching an intersection does the light start preparing?
 const PREP_LEAD = 4;
@@ -268,6 +275,7 @@ export const useSimulation = create<SimulationState>((set, get) => ({
   timeline: [],
   etaHistory: [],
   blockSimulated: false,
+  emergencyWaveActive: false,
 
   startMission: () => {
     set({
@@ -294,6 +302,7 @@ export const useSimulation = create<SimulationState>((set, get) => ({
       ],
       etaHistory: [{ t: 0, eta: 502 }],
       blockSimulated: false,
+      emergencyWaveActive: false,
     });
   },
 
@@ -345,6 +354,29 @@ export const useSimulation = create<SimulationState>((set, get) => ({
     }, 2000);
   },
 
+  activateEmergencyWave: () => {
+    const { phase, emergencyWaveActive, elapsedSeconds } = get();
+    if (emergencyWaveActive) return;
+    if (phase !== "running" && phase !== "rerouted" && phase !== "blocked") return;
+    set((state) => ({
+      emergencyWaveActive: true,
+      // All corridor intersections jump straight to priority preparation
+      intersections: state.intersections.map((int) =>
+        int.state === "normal" ? { ...int, state: "preparing" } : int
+      ),
+      timeline: [
+        ...state.timeline,
+        {
+          id: `wave-${Date.now()}`,
+          time: makeTimestamp(elapsedSeconds),
+          message:
+            "ONDA VERDE DE EMERGENCIA activada manualmente — prioridad absoluta en todo el corredor.",
+          type: "warning",
+        },
+      ],
+    }));
+  },
+
   resetSimulation: () => {
     set({
       phase: "idle",
@@ -355,6 +387,7 @@ export const useSimulation = create<SimulationState>((set, get) => ({
       timeline: [],
       etaHistory: [],
       blockSimulated: false,
+      emergencyWaveActive: false,
     });
   },
 
@@ -416,9 +449,12 @@ export const useSimulation = create<SimulationState>((set, get) => ({
     // While rerouting on the longer detour the ETA temporarily rises — this is
     // what makes the "change" clearly visible on the graph.
     if (state.phase === "rerouted" && !isCompleted) {
-      const reroutePenalty = Math.round(
-        BLOCK_ETA_PENALTY * (1 - progress)
-      );
+      let reroutePenalty = Math.round(BLOCK_ETA_PENALTY * (1 - progress));
+      // The manual emergency green wave slashes the remaining penalty:
+      // absolute priority recovers most of the time lost to the detour.
+      if (state.emergencyWaveActive) {
+        reroutePenalty = Math.round(reroutePenalty * 0.25);
+      }
       realETA += reroutePenalty;
     }
     const etaHistory = [

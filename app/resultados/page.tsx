@@ -207,7 +207,7 @@ export default function ResultadosPage() {
                     />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: "oklch(0.14 0.01 240)",
+                        backgroundColor: "oklch(0.16 0.007 150)",
                         border: "1px solid oklch(1 0 0 / 8%)",
                         borderRadius: "6px",
                         fontSize: "11px",
@@ -284,7 +284,7 @@ export default function ResultadosPage() {
                       />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: "oklch(0.14 0.01 240)",
+                          backgroundColor: "oklch(0.16 0.007 150)",
                           border: "1px solid oklch(1 0 0 / 8%)",
                           borderRadius: "6px",
                           fontSize: "11px",

@@ -7,7 +7,7 @@ const RealMap = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full h-full bg-[oklch(0.11_0.01_240)] rounded-lg border border-border animate-pulse" />
+      <div className="w-full h-full bg-card rounded-lg border border-border animate-pulse" />
     ),
   }
 );

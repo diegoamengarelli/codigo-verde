@@ -5,6 +5,7 @@ import { MapWrapper } from "@/components/map-wrapper";
 import { MissionPanel } from "@/components/mission-panel";
 import { EventTimeline } from "@/components/event-timeline";
 import { PageHeader } from "@/components/page-header";
+import { ContingencyBarometer } from "@/components/contingency-barometer";
 
 export default function ControlCenterPage() {
   return (
@@ -20,6 +21,8 @@ export default function ControlCenterPage() {
 
         <div className="flex-1 overflow-auto p-4 flex flex-col gap-4 min-h-0">
           <MetricCards />
+
+          <ContingencyBarometer />
 
           <div className="flex gap-4 flex-1 min-h-0" style={{ height: "calc(100vh - 256px)" }}>
             {/* Map + timeline */}
