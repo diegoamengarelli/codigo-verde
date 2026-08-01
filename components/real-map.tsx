@@ -89,7 +89,15 @@ export function RealMap() {
   useEffect(() => {
     if (typeof window === "undefined" || !mapRef.current || mapInstanceRef.current) return;
 
+    // Capture the node synchronously so the async body can detect stale mounts.
+    // StrictMode unmounts+remounts; by the time the Promise resolves the node
+    // may have been cleaned up already — guard against that below.
+    const container = mapRef.current;
+
     import("leaflet").then(async (L) => {
+      // Abort if the component unmounted while the dynamic import was in flight.
+      if (!container || (container as any)._leaflet_id) return;
+
       // Fix default icon paths broken by webpack
       delete (L.Icon.Default.prototype as any)._getIconUrl;
       L.Icon.Default.mergeOptions({
