@@ -2,6 +2,7 @@
 
 import { NavSidebar } from "@/components/nav-sidebar";
 import { SimulationTicker } from "@/components/simulation-ticker";
+import { PageHeader } from "@/components/page-header";
 import { useSimulation } from "@/lib/simulation-store";
 import { cn } from "@/lib/utils";
 import { Car, Bike, Bus, Truck, AlertCircle, Wifi } from "lucide-react";
@@ -362,46 +363,18 @@ export default function CamarasPage() {
       <SimulationTicker />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="px-6 py-3 border-b border-border shrink-0 flex items-center justify-between">
-          <div>
-            <h1 className="text-sm font-semibold text-foreground">
-              Monitoreo de cámaras
-            </h1>
-            <p className="text-xs text-muted-foreground">
-              3 cámaras activas — Intersecciones coordinadas
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span
-              className={cn(
-                "w-2 h-2 rounded-full",
-                phase === "running" || phase === "rerouted"
-                  ? "bg-primary animate-pulse"
-                  : "bg-muted-foreground"
-              )}
-            />
-            <span
-              className={cn(
-                "text-xs font-mono",
-                phase === "running" || phase === "rerouted"
-                  ? "text-primary"
-                  : "text-muted-foreground"
-              )}
-            >
-              {phase === "running" || phase === "rerouted"
-                ? "MISIÓN ACTIVA"
-                : "EN ESPERA"}
-            </span>
-          </div>
-        </header>
+        <PageHeader
+          title="Monitoreo de cámaras"
+          subtitle="3 cámaras activas — Intersecciones coordinadas"
+          status={phase === "running" || phase === "rerouted" ? "active" : "waiting"}
+          statusLabel={phase === "running" || phase === "rerouted" ? "MISIÓN ACTIVA" : "EN ESPERA"}
+        />
 
         <div className="flex-1 overflow-auto p-4">
           <div className="grid grid-cols-3 gap-4 max-w-6xl">
             {cameras.map((cam, i) =>
               i === 0 ? (
                 <YouTubeCameraFeed key={cam.id} {...cam} videoId="NfsyRx50gAI" />
-              ) : i === 1 ? (
-                <YouTubeCameraFeed key={cam.id} {...cam} videoId="urwuIKd8eEo" />
               ) : i === 1 ? (
                 <YouTubeCameraFeed key={cam.id} {...cam} videoId="urwuIKd8eEo" />
               ) : (

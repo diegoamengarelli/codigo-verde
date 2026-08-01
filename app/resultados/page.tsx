@@ -2,6 +2,7 @@
 
 import { NavSidebar } from "@/components/nav-sidebar";
 import { SimulationTicker } from "@/components/simulation-ticker";
+import { PageHeader } from "@/components/page-header";
 import { useSimulation } from "@/lib/simulation-store";
 import {
   LineChart,
@@ -83,26 +84,12 @@ export default function ResultadosPage() {
       <SimulationTicker />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="px-6 py-3 border-b border-border shrink-0 flex items-center justify-between">
-          <div>
-            <h1 className="text-sm font-semibold text-foreground">
-              Resultados de la misión
-            </h1>
-            <p className="text-xs text-muted-foreground">
-              Análisis comparativo — Código Verde vs. ruta sin coordinación
-            </p>
-          </div>
-          <span
-            className={cn(
-              "text-xs font-mono px-2 py-0.5 rounded border",
-              phase === "completed"
-                ? "text-primary border-primary/30 bg-primary/10"
-                : "text-muted-foreground border-border"
-            )}
-          >
-            {phase === "completed" ? "MISIÓN COMPLETADA" : "DATOS DEMOSTRATIVOS"}
-          </span>
-        </header>
+        <PageHeader
+          title="Resultados de la misión"
+          subtitle="Análisis comparativo — Código Verde vs. ruta sin coordinación"
+          status={phase === "completed" ? "active" : "waiting"}
+          statusLabel={phase === "completed" ? "MISIÓN COMPLETADA" : "DATOS DEMO"}
+        />
 
         <div className="flex-1 overflow-auto p-4">
           <div className="max-w-5xl flex flex-col gap-4">
