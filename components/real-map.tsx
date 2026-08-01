@@ -7,14 +7,16 @@ import type { TrafficLightState } from "@/lib/simulation-store";
 // ---------------------------------------------------------------------------
 // Coordinates
 // ---------------------------------------------------------------------------
-const ORIGIN: [number, number] = [-32.9571, -60.6910]; // HECA
-const DEST:   [number, number] = [-32.9449, -60.6399]; // Hosp. del Centenario
+// Mission runs FROM Hospital del Centenario TO HECA (the emergency hospital).
+const ORIGIN: [number, number] = [-32.9381, -60.6649]; // Hosp. del Centenario (Urquiza 3101)
+const DEST:   [number, number] = [-32.9523, -60.6698]; // HECA (Pellegrini 3205)
 
+// Intersections interpolated along the real Centenario -> HECA corridor
 const INTERSECTIONS: Record<string, [number, number]> = {
-  int1: [-32.9467, -60.6634],
-  int2: [-32.9448, -60.6529],
-  int3: [-32.9439, -60.6474],
-  int4: [-32.9430, -60.6432],
+  int1: [-32.9409, -60.6659],
+  int2: [-32.9438, -60.6669],
+  int3: [-32.9466, -60.6678],
+  int4: [-32.9494, -60.6688],
 };
 
 const SEGMENT_DURATIONS     = [8, 12, 10, 10, 8]; // normal  -> total 48
@@ -222,11 +224,11 @@ export function RealMap() {
 
       L.marker(ORIGIN, { icon: pinIcon("#9ca3af") })
         .addTo(map)
-        .bindTooltip("HECA", { permanent: true, direction: "left", className: "map-tt" });
+        .bindTooltip("Hosp. Centenario", { permanent: true, direction: "right", className: "map-tt" });
 
       layersRef.current.destMarker = L.marker(DEST, { icon: pinIcon("#9ca3af") })
         .addTo(map)
-        .bindTooltip("Hosp. Centenario", { permanent: true, direction: "right", className: "map-tt" });
+        .bindTooltip("HECA", { permanent: true, direction: "left", className: "map-tt" });
 
       // ---- Camera badges ---------------------------------------------------
       [

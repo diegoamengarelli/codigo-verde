@@ -157,7 +157,7 @@ const SEGMENTS_INITIAL: RouteSegment[] = [
   },
   {
     id: "s4",
-    label: "Pellegrini → Hospital Central",
+    label: "Pellegrini → HECA",
     from: "int4",
     to: "destination",
     blocked: false,
@@ -282,7 +282,7 @@ export const useSimulation = create<SimulationState>((set, get) => ({
         {
           id: "ev0",
           time: makeTimestamp(0),
-          message: "Misión iniciada. Ambulancia A-12 en ruta a Hospital Central.",
+          message: "Misión iniciada. Ambulancia A-12 en ruta desde H. del Centenario a HECA.",
           type: "success",
         },
         {

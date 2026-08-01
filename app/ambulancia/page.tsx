@@ -111,8 +111,8 @@ export default function AmbulanciaPage() {
               <MapPin className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />
               <div>
                 <p className="text-[9px] text-muted-foreground uppercase tracking-widest mb-0.5">Destino</p>
-                <p className="text-[12px] font-semibold text-foreground leading-tight">Hosp. Provincial del Centenario</p>
-                <p className="text-[10px] text-muted-foreground">Av. Pellegrini 3051, Rosario</p>
+                <p className="text-[12px] font-semibold text-foreground leading-tight">HECA — Hosp. de Emergencias</p>
+                <p className="text-[10px] text-muted-foreground">Av. Pellegrini 3205, Rosario</p>
               </div>
             </div>
 
@@ -138,9 +138,9 @@ export default function AmbulanciaPage() {
                 />
               </div>
               <div className="flex justify-between text-[9px] text-muted-foreground/50 font-mono">
-                <span>HECA</span>
+                <span>Centenario</span>
                 <span>{Math.round(progress)}%</span>
-                <span>Hosp. Central</span>
+                <span>HECA</span>
               </div>
             </div>
 
@@ -204,7 +204,7 @@ export default function AmbulanciaPage() {
                     variant="outline"
                     className="w-full gap-2 h-9 text-xs border-sky-400/40 text-sky-400 hover:bg-sky-400/10"
                     onClick={() => {
-                      const url = "https://www.google.com/maps/dir/-32.9515008,-60.637184/Hospital+del+Centenario,+Urquiza+3101,+Rosario/@-32.9450735,-60.67068,14z";
+                      const url = "https://www.google.com/maps/dir/Hospital+Provincial+del+Centenario,+Urquiza+3101,+Rosario/HECA+Hospital+de+Emergencias+Clemente+Alvarez,+Pellegrini+3205,+Rosario/@-32.9452,-60.6674,15z";
                       window.open(url, "_blank");
                     }}
                   >
