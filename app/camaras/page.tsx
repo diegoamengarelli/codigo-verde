@@ -17,6 +17,7 @@ function YouTubeCameraFeed({
   queueLength,
   occupancy,
   status,
+  videoId,
 }: {
   id: string;
   name: string;
@@ -28,6 +29,7 @@ function YouTubeCameraFeed({
   queueLength: number;
   occupancy: number;
   status: "normal" | "alert" | "offline";
+  videoId: string;
 }) {
   const total = cars + motos + buses + trucks;
 
@@ -36,8 +38,8 @@ function YouTubeCameraFeed({
       {/* Live YouTube embed */}
       <div className="relative aspect-video bg-black overflow-hidden">
         <iframe
-          src="https://www.youtube.com/embed/NfsyRx50gAI?autoplay=1&mute=1&controls=1&rel=0&modestbranding=1"
-          title="Cámara en vivo — UADE Buenos Aires"
+          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=1&rel=0&modestbranding=1`}
+          title={`Cámara en vivo — ${name}`}
           allow="autoplay; encrypted-media; picture-in-picture"
           allowFullScreen
           className="absolute inset-0 w-full h-full border-0"
@@ -395,7 +397,9 @@ export default function CamarasPage() {
           <div className="grid grid-cols-3 gap-4 max-w-6xl">
             {cameras.map((cam, i) =>
               i === 0 ? (
-                <YouTubeCameraFeed key={cam.id} {...cam} />
+                <YouTubeCameraFeed key={cam.id} {...cam} videoId="NfsyRx50gAI" />
+              ) : i === 1 ? (
+                <YouTubeCameraFeed key={cam.id} {...cam} videoId="urwuIKd8eEo" />
               ) : (
                 <SimulatedCameraFeed key={cam.id} {...cam} />
               )
