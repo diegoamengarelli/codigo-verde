@@ -38,12 +38,14 @@ function YouTubeCameraFeed({
       {/* Live YouTube embed */}
       <div className="relative aspect-video bg-black overflow-hidden">
         <iframe
-          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=1&rel=0&modestbranding=1`}
+          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&rel=0&modestbranding=1&disablekb=1`}
           title={`Cámara en vivo — ${name}`}
           allow="autoplay; encrypted-media; picture-in-picture"
           allowFullScreen
           className="absolute inset-0 w-full h-full border-0"
         />
+        {/* Transparent overlay — blocks YouTube hover controls */}
+        <div className="absolute inset-0 z-10" />
         {/* Top overlay */}
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-2 py-1.5 bg-gradient-to-b from-black/70 to-transparent pointer-events-none">
           <span className="text-[10px] text-white font-mono font-bold">{name}</span>
@@ -400,8 +402,10 @@ export default function CamarasPage() {
                 <YouTubeCameraFeed key={cam.id} {...cam} videoId="NfsyRx50gAI" />
               ) : i === 1 ? (
                 <YouTubeCameraFeed key={cam.id} {...cam} videoId="urwuIKd8eEo" />
+              ) : i === 1 ? (
+                <YouTubeCameraFeed key={cam.id} {...cam} videoId="urwuIKd8eEo" />
               ) : (
-                <SimulatedCameraFeed key={cam.id} {...cam} />
+                <YouTubeCameraFeed key={cam.id} {...cam} videoId="2XW_WQSEQ20" />
               )
             )}
           </div>
