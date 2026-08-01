@@ -19,6 +19,12 @@ import {
   CheckCircle2,
   RotateCcw,
   BarChart3,
+  TrendingDown,
+  FlaskConical,
+  ScanLine,
+  GitMerge,
+  Timer,
+  Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -461,6 +467,417 @@ export default function InfrastructuraPage() {
                   a infraestructura semafórica, cámaras municipales ni centrales de emergencias reales.
                   Los datos no representan información oficial de la Municipalidad de Rosario.
                 </p>
+              </div>
+            </section>
+
+            {/* ── Metrics system ─────────────────────────────────────────── */}
+            <section className="space-y-5">
+              <div>
+                <p className="text-xs font-mono font-semibold uppercase tracking-widest text-muted-foreground/50 mb-1">
+                  Sistema de métricas
+                </p>
+                <h2 className="text-sm font-semibold text-foreground">Qué se mide, cómo y para qué</h2>
+              </div>
+
+              {/* Three metric categories */}
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  {
+                    icon: Camera,
+                    color: "text-violet-400",
+                    border: "border-violet-400/20",
+                    bg: "bg-violet-400/5",
+                    label: "Métricas de cámara",
+                    sublabel: "Por intersección · cada ciclo",
+                    items: [
+                      { name: "vehicleCount", desc: "Vehículos en zona de espera" },
+                      { name: "occupancy",    desc: "0.0 – 1.0 · ratio de ocupación" },
+                      { name: "queueLength",  desc: "Metros estimados de cola" },
+                      { name: "flowRate",     desc: "Vehículos / minuto entrantes" },
+                      { name: "motorcycles / buses / trucks", desc: "Conteo por clase" },
+                    ],
+                  },
+                  {
+                    icon: Activity,
+                    color: "text-sky-400",
+                    border: "border-sky-400/20",
+                    bg: "bg-sky-400/5",
+                    label: "Métricas de misión",
+                    sublabel: "Por ambulancia · en tiempo real",
+                    items: [
+                      { name: "normalEta",     desc: "ETA sin coordinación (s)" },
+                      { name: "optimizedEta",  desc: "ETA con corredor activo (s)" },
+                      { name: "etaDelta",      desc: "Tiempo recuperado (s)" },
+                      { name: "crossingsCoord",desc: "Cruces coordinados exitosos" },
+                      { name: "aggregateDelay",desc: "Demora distribuida al tránsito" },
+                    ],
+                  },
+                  {
+                    icon: BarChart3,
+                    color: "text-primary",
+                    border: "border-primary/20",
+                    bg: "bg-primary/5",
+                    label: "Métricas de corredor",
+                    sublabel: "Por activación · post misión",
+                    items: [
+                      { name: "signalCyclesUsed",   desc: "Ciclos semafóricos modificados" },
+                      { name: "avgRecoveryTime",    desc: "Tiempo promedio de recuperación" },
+                      { name: "blockageCount",      desc: "Incidentes detectados" },
+                      { name: "rerouteCount",       desc: "Recálculos de ruta ejecutados" },
+                      { name: "missionCompleted",   desc: "Misión completada con éxito" },
+                    ],
+                  },
+                ].map((group) => {
+                  const Icon = group.icon;
+                  return (
+                    <div key={group.label} className={cn("rounded-lg border p-4 flex flex-col gap-3", group.border, group.bg)}>
+                      <div className="flex items-center gap-2">
+                        <Icon className={cn("w-3.5 h-3.5", group.color)} />
+                        <div>
+                          <p className={cn("text-[11px] font-semibold", group.color)}>{group.label}</p>
+                          <p className="text-[9px] text-muted-foreground/40 font-mono">{group.sublabel}</p>
+                        </div>
+                      </div>
+                      <ul className="space-y-2">
+                        {group.items.map((item) => (
+                          <li key={item.name} className="space-y-0.5">
+                            <p className="text-[10.5px] font-mono text-foreground/80">{item.name}</p>
+                            <p className="text-[9.5px] text-muted-foreground/50">{item.desc}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Traffic status classification */}
+              <div className="bg-card border border-border rounded-lg p-5 space-y-4">
+                <div className="flex items-center gap-2">
+                  <ScanLine className="w-3.5 h-3.5 text-muted-foreground/40" />
+                  <p className="text-[11px] font-semibold text-foreground">Clasificación de estado de tránsito</p>
+                  <span className="ml-auto text-[9px] font-mono text-muted-foreground/30 uppercase tracking-widest">calculateTrafficStatus()</span>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    { status: "clear",     label: "Libre",       occ: "< 35 %",  queue: "< 5 m",   color: "text-primary",       dot: "bg-primary"       },
+                    { status: "moderate",  label: "Moderado",    occ: "35–60 %", queue: "5–10 m",  color: "text-amber-400",     dot: "bg-amber-400"     },
+                    { status: "congested", label: "Congestionado",occ: "60–80 %",queue: "10–15 m", color: "text-orange-400",    dot: "bg-orange-400"    },
+                    { status: "critical",  label: "Crítico",     occ: "> 80 %",  queue: "> 15 m",  color: "text-rose-400",      dot: "bg-rose-400"      },
+                  ].map((s) => (
+                    <div key={s.status} className="bg-muted/10 rounded-lg p-3 space-y-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className={cn("w-2 h-2 rounded-full shrink-0", s.dot)} />
+                        <p className={cn("text-[11px] font-semibold", s.color)}>{s.label}</p>
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className="text-[9px] text-muted-foreground/50 font-mono">ocupación {s.occ}</p>
+                        <p className="text-[9px] text-muted-foreground/50 font-mono">cola {s.queue}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="border-t border-border pt-3">
+                  <p className="text-[10px] font-mono text-muted-foreground/40 mb-2 uppercase tracking-widest">Regla de prioridad de activación</p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Una intersección se prioriza si su estado es <span className="text-orange-400">congestionado</span> o <span className="text-rose-400">crítico</span> Y se encuentra en la ruta activa de la ambulancia.
+                    El corredor descarta intersecciones <span className="text-primary">libres</span> que no requieren preparación anticipada para no impactar innecesariamente al tránsito general.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            {/* ── Prediction model ───────────────────────────────────────── */}
+            <section className="space-y-5">
+              <div>
+                <p className="text-xs font-mono font-semibold uppercase tracking-widest text-muted-foreground/50 mb-1">
+                  Modelo de predicción
+                </p>
+                <h2 className="text-sm font-semibold text-foreground">Cómo se calcula y optimiza el ETA</h2>
+              </div>
+
+              {/* ETA formula */}
+              <div className="bg-card border border-sky-400/20 rounded-lg p-5 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Timer className="w-3.5 h-3.5 text-sky-400" />
+                  <p className="text-[11px] font-semibold text-sky-400">Fórmula base de ETA</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <div className="bg-muted/10 rounded-lg p-3">
+                      <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground/40 mb-2">ETA sin coordinación</p>
+                      <p className="text-[12px] font-mono text-foreground/80 leading-relaxed">
+                        ETA_normal =<br />
+                        <span className="text-muted-foreground/60 text-[10px] ml-3">Σ (distancia_seg / velocidad_libre)</span><br />
+                        <span className="text-amber-400/80 text-[10px] ml-3">+ Σ tiempo_espera_semaforo</span><br />
+                        <span className="text-rose-400/80 text-[10px] ml-3">+ Σ penalidad_congestion</span>
+                      </p>
+                    </div>
+                    <div className="bg-muted/10 rounded-lg p-3">
+                      <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground/40 mb-2">ETA con Código Verde</p>
+                      <p className="text-[12px] font-mono text-foreground/80 leading-relaxed">
+                        ETA_optimizado =<br />
+                        <span className="text-muted-foreground/60 text-[10px] ml-3">Σ (distancia_seg / velocidad_libre)</span><br />
+                        <span className="text-primary/80 text-[10px] ml-3">+ Σ tiempo_cruce_coordinado</span><br />
+                        <span className="text-rose-400/80 text-[10px] ml-3">+ Σ penalidad_bloqueos</span>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground/40">Variables del modelo</p>
+                    {[
+                      { var: "velocidad_libre",      val: "40 km/h en zona urbana" },
+                      { var: "tiempo_espera_semaforo",val: "15–45 s promedio" },
+                      { var: "penalidad_congestion",  val: "+30 % por estado congested, +60 % critical" },
+                      { var: "tiempo_cruce_coord",    val: "3–5 s (paso libre garantizado)" },
+                      { var: "penalidad_bloqueo",     val: "+90 s recálculo + desvío" },
+                      { var: "factor_hora_pico",      val: "×1.4 en 7–9 h y 17–20 h" },
+                    ].map((v) => (
+                      <div key={v.var} className="flex items-start gap-2">
+                        <span className="text-[10px] font-mono text-sky-400/70 shrink-0 mt-px">{v.var}</span>
+                        <span className="text-[10px] text-muted-foreground/50">{v.val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Prediction pipeline steps */}
+              <div className="bg-card border border-border rounded-lg p-5 space-y-4">
+                <div className="flex items-center gap-2">
+                  <GitMerge className="w-3.5 h-3.5 text-muted-foreground/40" />
+                  <p className="text-[11px] font-semibold text-foreground">Pipeline de predicción en tiempo real</p>
+                </div>
+                <div className="grid grid-cols-5 gap-2">
+                  {[
+                    { n: "1", label: "Input",        desc: "Métricas de cámaras + posición ambulancia",   color: "text-violet-400", bg: "bg-violet-400/10" },
+                    { n: "2", label: "Estado",        desc: "Clasificación de congestión por intersección", color: "text-amber-400",  bg: "bg-amber-400/10"  },
+                    { n: "3", label: "Ruta",          desc: "Selección de segmentos y penalidades activas", color: "text-sky-400",    bg: "bg-sky-400/10"    },
+                    { n: "4", label: "ETA",           desc: "Cálculo de tiempo optimizado vs. normal",      color: "text-primary",    bg: "bg-primary/10"    },
+                    { n: "5", label: "Corredor",      desc: "Activación anticipada de intersecciones",      color: "text-primary",    bg: "bg-primary/10"    },
+                  ].map((step, i) => (
+                    <div key={step.n} className="flex flex-col items-center gap-1.5 text-center relative">
+                      <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-mono font-bold", step.bg, step.color)}>
+                        {step.n}
+                      </div>
+                      <p className={cn("text-[10px] font-semibold", step.color)}>{step.label}</p>
+                      <p className="text-[9px] text-muted-foreground/50 leading-tight">{step.desc}</p>
+                      {i < 4 && (
+                        <ArrowRight className="absolute top-2.5 -right-1 w-3 h-3 text-muted-foreground/15" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Correction factors */}
+              <div className="bg-card border border-border rounded-lg p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <TrendingDown className="w-3.5 h-3.5 text-muted-foreground/40" />
+                  <p className="text-[11px] font-semibold text-foreground">Factores de corrección del ETA</p>
+                  <span className="ml-auto text-[9px] font-mono text-muted-foreground/30">Futuras iteraciones del modelo</span>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    {
+                      label: "Hora del día",
+                      color: "text-amber-400",
+                      border: "border-amber-400/15",
+                      rows: [
+                        ["Valle (22–6 h)",    "×0.8"],
+                        ["Hora pico (7–9 h)", "×1.4"],
+                        ["Pico tarde (17–20 h)","×1.4"],
+                        ["Resto del día",     "×1.0"],
+                      ],
+                    },
+                    {
+                      label: "Tipo de ruta",
+                      color: "text-sky-400",
+                      border: "border-sky-400/15",
+                      rows: [
+                        ["Avenida principal", "×0.9"],
+                        ["Calle secundaria",  "×1.1"],
+                        ["Zona escolar",      "×1.3"],
+                        ["Autopista",         "×0.7"],
+                      ],
+                    },
+                    {
+                      label: "Condiciones",
+                      color: "text-violet-400",
+                      border: "border-violet-400/15",
+                      rows: [
+                        ["Lluvia",           "+15 %"],
+                        ["Obra vial activa", "+25 %"],
+                        ["Evento masivo",    "+40 %"],
+                        ["Corte de luz",     "+50 %"],
+                      ],
+                    },
+                  ].map((group) => (
+                    <div key={group.label} className={cn("rounded-lg border p-3 space-y-2", group.border)}>
+                      <p className={cn("text-[10px] font-semibold uppercase tracking-widest", group.color)}>{group.label}</p>
+                      <table className="w-full">
+                        <tbody>
+                          {group.rows.map(([cond, factor]) => (
+                            <tr key={cond}>
+                              <td className="text-[10px] text-muted-foreground py-0.5 pr-2">{cond}</td>
+                              <td className={cn("text-[10px] font-mono text-right", group.color)}>{factor}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* ── Data analysis pipeline ─────────────────────────────────── */}
+            <section className="space-y-5">
+              <div>
+                <p className="text-xs font-mono font-semibold uppercase tracking-widest text-muted-foreground/50 mb-1">
+                  Pipeline de análisis
+                </p>
+                <h2 className="text-sm font-semibold text-foreground">De video crudo a decisión operativa</h2>
+              </div>
+
+              {/* Full pipeline diagram */}
+              <div className="bg-card border border-border rounded-lg p-5 space-y-3">
+                {[
+                  {
+                    stage: "A",
+                    icon: Camera,
+                    color: "text-violet-400",
+                    bg: "bg-violet-400/10",
+                    label: "Captura de video",
+                    tech: "Cámaras IP · RTSP · H.264",
+                    outputs: ["stream de frames", "resolución 1080p", "25–30 fps"],
+                  },
+                  {
+                    stage: "B",
+                    icon: Cpu,
+                    color: "text-violet-400",
+                    bg: "bg-violet-400/10",
+                    label: "Detección de objetos",
+                    tech: "YOLO · Roboflow Inference",
+                    outputs: ["bounding boxes", "clase de vehículo", "score de confianza"],
+                  },
+                  {
+                    stage: "C",
+                    icon: ScanLine,
+                    color: "text-sky-400",
+                    bg: "bg-sky-400/10",
+                    label: "Tracking de vehículos",
+                    tech: "ByteTrack · ID persistente",
+                    outputs: ["track_id por vehículo", "trayectoria", "velocidad estimada"],
+                  },
+                  {
+                    stage: "D",
+                    icon: Layers,
+                    color: "text-sky-400",
+                    bg: "bg-sky-400/10",
+                    label: "Zonas de análisis",
+                    tech: "LineZone · PolygonZone",
+                    outputs: ["conteo por dirección", "ocupación de zona", "longitud de cola"],
+                  },
+                  {
+                    stage: "E",
+                    icon: FlaskConical,
+                    color: "text-primary",
+                    bg: "bg-primary/10",
+                    label: "Agregación de métricas",
+                    tech: "Python · Supervision · JSON",
+                    outputs: ["camera-metrics.json", "video anotado .mp4", "estado por ciclo"],
+                  },
+                  {
+                    stage: "F",
+                    icon: Database,
+                    color: "text-primary",
+                    bg: "bg-primary/10",
+                    label: "Ingesta al sistema",
+                    tech: "Route Handlers · Neon Postgres",
+                    outputs: ["CameraMetrics actualizado", "evento registrado", "UI reactiva"],
+                  },
+                ].map((row, i) => {
+                  const Icon = row.icon;
+                  return (
+                    <div key={row.stage}>
+                      <div className="flex items-start gap-3">
+                        <div className={cn("w-8 h-8 rounded-md flex items-center justify-center shrink-0 mt-0.5", row.bg)}>
+                          <Icon className={cn("w-4 h-4", row.color)} strokeWidth={1.5} />
+                        </div>
+                        <div className="flex-1 min-w-0 grid grid-cols-3 gap-x-4">
+                          <div>
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                              <span className={cn("text-[9px] font-mono font-bold", row.color)}>ETAPA {row.stage}</span>
+                            </div>
+                            <p className="text-[12px] font-semibold text-foreground">{row.label}</p>
+                            <p className="text-[10px] text-muted-foreground/50 font-mono">{row.tech}</p>
+                          </div>
+                          <div className="col-span-2 flex items-center gap-2 flex-wrap">
+                            {row.outputs.map((out) => (
+                              <span key={out} className="text-[9.5px] font-mono bg-muted/20 text-muted-foreground/70 px-2 py-0.5 rounded border border-border">
+                                {out}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      {i < 5 && (
+                        <div className="flex items-center gap-2 ml-4 my-1">
+                          <div className="w-px h-4 bg-border ml-3" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* JSON output example */}
+              <div className="bg-card border border-border rounded-lg p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Database className="w-3.5 h-3.5 text-muted-foreground/40" />
+                  <p className="text-[11px] font-semibold text-foreground">Salida del pipeline — <span className="font-mono text-muted-foreground/50">camera-metrics.json</span></p>
+                </div>
+                <pre className="text-[10.5px] font-mono text-muted-foreground/70 leading-relaxed bg-muted/10 rounded-lg p-4 overflow-x-auto border border-border whitespace-pre">{`{
+  "cameraId":           "CAM-01",
+  "intersectionId":     "INT-BV-ORONO-CORDOBA",
+  "timestamp":          "2026-08-01T12:30:00-03:00",
+  "vehicleCount":       27,
+  "motorcycles":        8,
+  "buses":              2,
+  "trucks":             1,
+  "queueLength":        14,
+  "occupancy":          0.78,
+  "status":             "congested",
+  "blockedIntersection": false,
+  "flowRate":           12,
+  "avgSpeed":           22
+}`}</pre>
+                <div className="border-t border-border pt-3 grid grid-cols-3 gap-3">
+                  {[
+                    { label: "Frecuencia de actualización", value: "Cada 10 s en modo activo" },
+                    { label: "Retención de datos",           value: "Últimas 24 h en Postgres" },
+                    { label: "Video anotado",                value: "Archivado en Vercel Blob" },
+                  ].map((m) => (
+                    <div key={m.label} className="space-y-0.5">
+                      <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground/30">{m.label}</p>
+                      <p className="text-[11px] text-foreground/70">{m.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Future model note */}
+              <div className="flex items-start gap-3 bg-violet-400/5 border border-violet-400/15 rounded-lg px-4 py-3">
+                <FlaskConical className="w-3.5 h-3.5 text-violet-400/70 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-[11px] text-violet-400/80 font-semibold mb-0.5">Modelo predictivo — fase futura</p>
+                  <p className="text-[10.5px] text-violet-400/50 leading-relaxed">
+                    Con historial acumulado (mínimo 30 días de misiones), el pipeline puede entrenar un modelo de regresión que prediga el ETA con mayor precisión incorporando patrones históricos por intersección, hora del día y día de la semana.
+                    Las variables de entrada serían: hora, día, estado de cada intersección, clima y tipo de evento urbano activo.
+                    El output sería un ETA calibrado con intervalos de confianza que el operador puede ver antes de activar el corredor.
+                  </p>
+                </div>
               </div>
             </section>
 
