@@ -229,6 +229,11 @@ export function RealMap() {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
+      // Clear Leaflet's internal container ID so StrictMode double-mount
+      // doesn't trigger "Map container is already initialized"
+      if (mapRef.current) {
+        delete (mapRef.current as any)._leaflet_id;
+      }
     };
   }, []);
 
