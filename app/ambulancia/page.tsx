@@ -86,10 +86,10 @@ export default function AmbulanciaPage() {
 
       <main className="flex-1 flex overflow-hidden">
         {/* Left: phone mockup */}
-        <div className="flex items-center justify-center w-80 shrink-0 border-r border-border bg-[oklch(0.07_0.008_240)] p-6">
-          <div className="w-full flex flex-col bg-[oklch(0.1_0.01_240)] rounded-2xl overflow-hidden border border-border shadow-2xl">
+        <div className="flex items-center justify-center w-80 shrink-0 border-r border-border bg-[oklch(0.11_0.006_150)] p-6">
+          <div className="w-full flex flex-col bg-[oklch(0.14_0.007_150)] rounded-2xl overflow-hidden border border-border shadow-2xl">
             {/* Status bar */}
-            <div className="bg-[oklch(0.08_0.01_240)] px-3 py-1.5 flex items-center justify-between">
+            <div className="bg-[oklch(0.12_0.006_150)] px-3 py-1.5 flex items-center justify-between">
               <span className="text-[10px] text-muted-foreground font-mono">14:03</span>
               <div className="flex items-center gap-1">
                 <span className={cn("w-1.5 h-1.5 rounded-full", status.dot)} />

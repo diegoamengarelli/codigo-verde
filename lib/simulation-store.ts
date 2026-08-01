@@ -123,7 +123,7 @@ const INTERSECTIONS_INITIAL: Intersection[] = [
 const SEGMENTS_INITIAL: RouteSegment[] = [
   {
     id: "s0",
-    label: "HECA → Bv. Oroño",
+    label: "Centenario → Bv. Oroño",
     from: "origin",
     to: "int1",
     blocked: false,
