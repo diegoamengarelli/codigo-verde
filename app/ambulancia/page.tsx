@@ -204,9 +204,7 @@ export default function AmbulanciaPage() {
                     variant="outline"
                     className="w-full gap-2 h-9 text-xs border-sky-400/40 text-sky-400 hover:bg-sky-400/10"
                     onClick={() => {
-                      const origin = encodeURIComponent("HECA Hospital de Emergencias Clemente Alvarez, Rosario, Santa Fe");
-                      const destination = encodeURIComponent("Hospital Provincial del Centenario, Av. Pellegrini 3051, Rosario, Santa Fe");
-                      const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`;
+                      const url = "https://www.google.com/maps/dir/-32.9515008,-60.637184/Hospital+del+Centenario,+Urquiza+3101,+Rosario/@-32.9450735,-60.67068,14z";
                       window.open(url, "_blank");
                     }}
                   >
