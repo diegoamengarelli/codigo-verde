@@ -155,7 +155,7 @@ export default function CamarasPage() {
                 <p className="text-xs text-muted-foreground mt-1">
                   Los feeds de video y datos de tránsito mostrados son completamente simulados y no
                   representan datos reales de la infraestructura municipal de Rosario. Esta demostración
-                  tiene fines ilustrativos para la presentación del sistema Código Verde.
+                  tiene fines ilustrativos para la presentación del sistema NEXO.
                 </p>
               </div>
             </div>

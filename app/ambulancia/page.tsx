@@ -93,7 +93,7 @@ export default function AmbulanciaPage() {
               <span className="text-[10px] text-muted-foreground font-mono">14:03</span>
               <div className="flex items-center gap-1">
                 <span className={cn("w-1.5 h-1.5 rounded-full", status.dot)} />
-                <span className="text-[10px] text-primary font-semibold tracking-widest">CÓDIGO VERDE</span>
+                <span className="text-[10px] text-primary font-semibold tracking-widest">NEXO</span>
               </div>
               <span className="text-[10px] text-muted-foreground font-mono">A-12</span>
             </div>
@@ -249,7 +249,7 @@ export default function AmbulanciaPage() {
           <div className="px-6 py-3 border-b border-border flex items-center justify-between shrink-0">
             <div>
               <h1 className="text-sm font-semibold text-foreground">App de Ambulancia</h1>
-              <p className="text-xs text-muted-foreground">Unidad A-12 — Código Verde activo</p>
+              <p className="text-xs text-muted-foreground">Unidad A-12 — NEXO activo</p>
             </div>
             <div className="flex items-center gap-2">
               <span className={cn("w-2 h-2 rounded-full", status.dot)} />

@@ -22,7 +22,7 @@ import { TrendingDown, Clock, Activity, TrafficCone, AlertCircle } from "lucide-
 
 const BEFORE_AFTER = [
   { label: "Sin coordinación", time: 640, color: "#ef4444" },
-  { label: "Con Código Verde", time: 502, color: "#22c55e" },
+  { label: "Con NEXO", time: 502, color: "#22c55e" },
 ];
 
 const INCIDENTS = [
@@ -94,7 +94,7 @@ export default function ResultadosPage() {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <PageHeader
           title="Resultados de la misión"
-          subtitle="Análisis comparativo — Código Verde vs. ruta sin coordinación"
+          subtitle="Análisis comparativo — NEXO vs. ruta sin coordinación"
           status={phase === "completed" ? "active" : "waiting"}
           statusLabel={phase === "completed" ? "MISIÓN COMPLETADA" : "DATOS DEMO"}
         />
@@ -113,7 +113,7 @@ export default function ResultadosPage() {
                   icon: Clock,
                 },
                 {
-                  label: "Tiempo con Código Verde",
+                  label: "Tiempo con NEXO",
                   value: "8m 22s",
                   sub: "Ruta optimizada",
                   color: "text-primary",
@@ -428,7 +428,7 @@ export default function ResultadosPage() {
               <p className="text-xs text-muted-foreground">
                 Todos los datos mostrados son demostrativos y simulados. No representan resultados
                 operativos reales de la Municipalidad de Rosario. Este sistema es una demostración
-                conceptual del proyecto Código Verde.
+                conceptual del proyecto NEXO.
               </p>
             </div>
           </div>

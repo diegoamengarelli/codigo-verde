@@ -175,7 +175,7 @@ const DATA_TYPES = [
 
 const METRICS = [
   { label: "Tiempo sin coordinación", value: "10 m 40 s", sub: "ruta convencional" },
-  { label: "Tiempo con Código Verde", value: "8 m 22 s", sub: "corredor prioritario" },
+  { label: "Tiempo con NEXO", value: "8 m 22 s", sub: "corredor prioritario" },
   { label: "Tiempo recuperado",       value: "2 m 18 s", sub: "diferencia real"       },
   { label: "Cruces coordinados",      value: "4",         sub: "intersecciones"        },
   { label: "Demora al tránsito",      value: "34 s",      sub: "demora distribuida"    },
@@ -191,7 +191,7 @@ export default function InfrastructuraPage() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <PageHeader
           title="Arquitectura e infraestructura"
-          subtitle="Cómo funciona Código Verde — flujo, stack técnico y modelo de datos"
+          subtitle="Cómo funciona NEXO — flujo, stack técnico y modelo de datos"
           status="waiting"
           statusLabel="MODO DEMO"
         />
@@ -207,11 +207,11 @@ export default function InfrastructuraPage() {
               <blockquote className="text-xl font-semibold text-foreground leading-snug border-l-2 border-primary pl-5">
                 Google Maps le dice a la ambulancia por dónde ir.
                 <br />
-                <span className="text-primary">Código Verde prepara la ciudad para que pueda llegar.</span>
+                <span className="text-primary">NEXO prepara la ciudad para que pueda llegar.</span>
               </blockquote>
               <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl pl-5">
                 Las aplicaciones de navegación optimizan rutas según el tránsito existente, pero no controlan
-                la infraestructura urbana. Código Verde conecta ambulancia, cámaras y centro municipal
+                la infraestructura urbana. NEXO conecta ambulancia, cámaras y centro municipal
                 para crear un corredor de prioridad dinámico que la ciudad ayuda activamente a despejar.
               </p>
             </section>
@@ -614,7 +614,7 @@ export default function InfrastructuraPage() {
                       </p>
                     </div>
                     <div className="bg-muted/10 rounded-lg p-3">
-                      <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground/40 mb-2">ETA con Código Verde</p>
+                      <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground/40 mb-2">ETA con NEXO</p>
                       <p className="text-[12px] font-mono text-foreground/80 leading-relaxed">
                         ETA_optimizado =<br />
                         <span className="text-muted-foreground/60 text-[10px] ml-3">Σ (distancia_seg / velocidad_libre)</span><br />

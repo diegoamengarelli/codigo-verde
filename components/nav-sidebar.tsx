@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, Camera, BarChart3, Smartphone, Shield, Layers } from "lucide-react";
+import { Activity, Camera, BarChart3, Smartphone, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -22,16 +22,12 @@ export function NavSidebar() {
       {/* Brand */}
       <div className="px-4 pt-5 pb-4 border-b border-border">
         <div className="flex items-center gap-3">
-          <div className="relative w-8 h-8 shrink-0">
-            <div className="absolute inset-0 rounded-md bg-primary/20" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Shield className="w-4 h-4 text-primary" strokeWidth={2} />
-            </div>
-          </div>
+          <img
+            src="/nexo-logo.png"
+            alt="NEXO"
+            className="h-6 w-auto object-contain"
+          />
           <div className="leading-tight">
-            <p className="text-[13px] font-bold tracking-tight text-foreground">
-              Código Verde
-            </p>
             <p className="text-[10px] text-muted-foreground tracking-wide uppercase">
               Rosario · MR
             </p>

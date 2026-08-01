@@ -117,7 +117,7 @@ export function MissionPanel() {
                     </div>
                     <div>
                       <div className="flex justify-between text-[10px] mb-1">
-                        <span className="text-muted-foreground/60">Con Código Verde</span>
+                        <span className="text-muted-foreground/60">Con NEXO</span>
                         <span className="text-primary font-mono">8m 22s</span>
                       </div>
                       <div className="h-1 bg-white/[0.04] rounded-full">

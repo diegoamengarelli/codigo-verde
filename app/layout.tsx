@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "Código Verde — Centro Municipal de Control | Rosario",
+  title: "NEXO — Centro Municipal de Control | Rosario",
   description:
     "Plataforma de coordinación de emergencias para ambulancias, cámaras y semáforos en la ciudad de Rosario. Demostración simulada.",
   generator: "v0.app",
