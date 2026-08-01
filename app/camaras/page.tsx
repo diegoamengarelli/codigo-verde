@@ -6,6 +6,112 @@ import { useSimulation } from "@/lib/simulation-store";
 import { cn } from "@/lib/utils";
 import { Car, Bike, Bus, Truck, AlertCircle, Wifi } from "lucide-react";
 
+function YouTubeCameraFeed({
+  id,
+  name,
+  location,
+  cars,
+  motos,
+  buses,
+  trucks,
+  queueLength,
+  occupancy,
+  status,
+}: {
+  id: string;
+  name: string;
+  location: string;
+  cars: number;
+  motos: number;
+  buses: number;
+  trucks: number;
+  queueLength: number;
+  occupancy: number;
+  status: "normal" | "alert" | "offline";
+}) {
+  const total = cars + motos + buses + trucks;
+
+  return (
+    <div className="bg-card border border-primary/30 rounded-lg overflow-hidden flex flex-col">
+      {/* Live YouTube embed */}
+      <div className="relative aspect-video bg-black overflow-hidden">
+        <iframe
+          src="https://www.youtube.com/embed/NfsyRx50gAI?autoplay=1&mute=1&controls=1&rel=0&modestbranding=1"
+          title="Cámara en vivo — UADE Buenos Aires"
+          allow="autoplay; encrypted-media; picture-in-picture"
+          allowFullScreen
+          className="absolute inset-0 w-full h-full border-0"
+        />
+        {/* Top overlay */}
+        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-2 py-1.5 bg-gradient-to-b from-black/70 to-transparent pointer-events-none">
+          <span className="text-[10px] text-white font-mono font-bold">{name}</span>
+          <div className="flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+            <span className="text-[9px] text-rose-400 font-mono font-bold">LIVE</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Info panel */}
+      <div className="p-3 flex flex-col gap-3">
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <p className="text-sm font-semibold text-foreground">{name}</p>
+            <p className="text-xs text-muted-foreground">{location}</p>
+          </div>
+          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border text-primary border-primary/30 bg-primary/10 shrink-0">
+            En vivo
+          </span>
+        </div>
+
+        {/* Vehicle counts */}
+        <div className="grid grid-cols-4 gap-1">
+          {[
+            { Icon: Car, label: "Autos", value: cars, color: "text-foreground" },
+            { Icon: Bike, label: "Motos", value: motos, color: "text-sky-400" },
+            { Icon: Bus, label: "Colect.", value: buses, color: "text-amber-400" },
+            { Icon: Truck, label: "Camion.", value: trucks, color: "text-rose-400" },
+          ].map(({ Icon, label, value, color }) => (
+            <div key={label} className="bg-muted/20 rounded p-1.5 flex flex-col items-center gap-0.5">
+              <Icon className={cn("w-3 h-3", color)} />
+              <p className="text-sm font-bold font-mono text-foreground">{value}</p>
+              <p className="text-[9px] text-muted-foreground">{label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Queue and occupancy */}
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-muted/20 rounded p-2">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">Long. de fila</p>
+            <p className="text-base font-bold font-mono text-foreground">{queueLength}m</p>
+          </div>
+          <div className="bg-muted/20 rounded p-2">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">Ocupación</p>
+            <div className="flex items-end gap-1">
+              <p className="text-base font-bold font-mono text-foreground">{occupancy}%</p>
+            </div>
+            <div className="w-full bg-muted/30 rounded-full h-1 mt-1">
+              <div
+                className={cn("h-1 rounded-full transition-all", occupancy > 75 ? "bg-amber-400" : occupancy > 50 ? "bg-sky-400" : "bg-primary")}
+                style={{ width: `${occupancy}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Source note */}
+        <div className="flex items-center gap-1 justify-center">
+          <AlertCircle className="w-3 h-3 text-muted-foreground/50" />
+          <p className="text-[9px] text-muted-foreground/50">
+            Fuente: Cámara pública en vivo — Buenos Aires
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SimulatedCameraFeed({
   id,
   name,
@@ -287,9 +393,13 @@ export default function CamarasPage() {
 
         <div className="flex-1 overflow-auto p-4">
           <div className="grid grid-cols-3 gap-4 max-w-6xl">
-            {cameras.map((cam) => (
-              <SimulatedCameraFeed key={cam.id} {...cam} />
-            ))}
+            {cameras.map((cam, i) =>
+              i === 0 ? (
+                <YouTubeCameraFeed key={cam.id} {...cam} />
+              ) : (
+                <SimulatedCameraFeed key={cam.id} {...cam} />
+              )
+            )}
           </div>
 
           {/* System note */}
