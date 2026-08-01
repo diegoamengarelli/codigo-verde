@@ -2,62 +2,51 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Activity,
-  Camera,
-  BarChart3,
-  Smartphone,
-  ShieldAlert,
-} from "lucide-react";
+import { Activity, Camera, BarChart3, Smartphone, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  {
-    href: "/",
-    label: "Centro de Control",
-    icon: Activity,
-  },
-  {
-    href: "/ambulancia",
-    label: "App Ambulancia",
-    icon: Smartphone,
-  },
-  {
-    href: "/camaras",
-    label: "Cámaras",
-    icon: Camera,
-  },
-  {
-    href: "/resultados",
-    label: "Resultados",
-    icon: BarChart3,
-  },
+  { href: "/",           label: "Control",    sublabel: "Centro de control",  icon: Activity  },
+  { href: "/ambulancia", label: "Ambulancia", sublabel: "App de campo",       icon: Smartphone },
+  { href: "/camaras",    label: "Cámaras",   sublabel: "Monitor de video",   icon: Camera    },
+  { href: "/resultados", label: "Resultados", sublabel: "Análisis de misión", icon: BarChart3 },
 ];
 
 export function NavSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-56 shrink-0 flex flex-col bg-sidebar border-r border-border h-screen sticky top-0">
-      {/* Logo */}
-      <div className="px-4 py-4 border-b border-border">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded bg-primary/15 flex items-center justify-center">
-            <ShieldAlert className="w-4 h-4 text-primary" />
+    <aside className="w-52 shrink-0 flex flex-col bg-sidebar border-r border-border h-screen sticky top-0">
+
+      {/* Brand */}
+      <div className="px-4 pt-5 pb-4 border-b border-border">
+        <div className="flex items-center gap-3">
+          <div className="relative w-8 h-8 shrink-0">
+            <div className="absolute inset-0 rounded-md bg-primary/20" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Shield className="w-4 h-4 text-primary" strokeWidth={2} />
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-bold text-foreground leading-tight">
+          <div className="leading-tight">
+            <p className="text-[13px] font-bold tracking-tight text-foreground">
               Código Verde
             </p>
-            <p className="text-[10px] text-muted-foreground leading-tight">
-              Municipalidad de Rosario
+            <p className="text-[10px] text-muted-foreground tracking-wide uppercase">
+              Rosario · MR
             </p>
           </div>
         </div>
       </div>
 
+      {/* Section label */}
+      <div className="px-4 pt-4 pb-1.5">
+        <p className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/50">
+          Módulos
+        </p>
+      </div>
+
       {/* Nav */}
-      <nav className="flex-1 px-2 py-3 flex flex-col gap-0.5">
+      <nav className="flex-1 px-2 flex flex-col gap-px">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = pathname === item.href;
@@ -66,27 +55,51 @@ export function NavSidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded text-sm transition-colors",
+                "group flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-150",
                 active
-                  ? "bg-primary/15 text-primary font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  ? "bg-primary/12 text-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
               )}
             >
-              <Icon className="w-4 h-4 shrink-0" />
-              {item.label}
+              <div className={cn(
+                "w-6 h-6 rounded flex items-center justify-center shrink-0 transition-colors",
+                active ? "bg-primary/20" : "bg-white/[0.04] group-hover:bg-white/[0.07]"
+              )}>
+                <Icon className="w-3.5 h-3.5" strokeWidth={active ? 2.5 : 2} />
+              </div>
+              <div className="min-w-0 leading-tight">
+                <p className={cn("text-[12.5px] font-medium", active ? "text-primary" : "")}>
+                  {item.label}
+                </p>
+                <p className={cn(
+                  "text-[9.5px] truncate transition-colors",
+                  active ? "text-primary/60" : "text-muted-foreground/50 group-hover:text-muted-foreground/70"
+                )}>
+                  {item.sublabel}
+                </p>
+              </div>
+              {active && (
+                <div className="ml-auto w-1 h-4 rounded-full bg-primary shrink-0" />
+              )}
             </Link>
           );
         })}
       </nav>
 
-      {/* Demo badge */}
-      <div className="px-3 py-3 border-t border-border">
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded px-2 py-1.5 text-center">
-          <p className="text-[10px] text-amber-400 font-medium uppercase tracking-wide">
-            Demostración simulada
+      {/* System status */}
+      <div className="px-3 py-3 border-t border-border space-y-2">
+        <div className="flex items-center gap-2 px-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shrink-0" />
+          <p className="text-[10px] text-primary font-mono font-medium tracking-wide">
+            SISTEMA EN LÍNEA
           </p>
-          <p className="text-[9px] text-amber-400/60 mt-0.5">
-            No conectado a infraestructura real
+        </div>
+        <div className="bg-amber-500/8 border border-amber-500/15 rounded px-2.5 py-2">
+          <p className="text-[10px] text-amber-400/80 font-medium uppercase tracking-wide leading-tight">
+            Modo demo
+          </p>
+          <p className="text-[9px] text-amber-400/40 mt-0.5 leading-tight">
+            Datos simulados
           </p>
         </div>
       </div>
