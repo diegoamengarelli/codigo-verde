@@ -1,7 +1,7 @@
 import { NavSidebar } from "@/components/nav-sidebar";
 import { SimulationTicker } from "@/components/simulation-ticker";
 import { MetricCards } from "@/components/metric-cards";
-import { SchematicMap } from "@/components/schematic-map";
+import { MapWrapper } from "@/components/map-wrapper";
 import { MissionPanel } from "@/components/mission-panel";
 import { EventTimeline } from "@/components/event-timeline";
 
@@ -37,7 +37,7 @@ export default function ControlCenterPage() {
             {/* Map */}
             <div className="flex-1 min-w-0 flex flex-col gap-4 min-h-0">
               <div className="flex-1 min-h-0" style={{ minHeight: "300px" }}>
-                <SchematicMap />
+                <MapWrapper />
               </div>
               <div className="h-52 shrink-0">
                 <EventTimeline />
