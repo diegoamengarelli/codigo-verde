@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, Camera, BarChart3, Smartphone, Shield } from "lucide-react";
+import { Activity, Camera, BarChart3, Smartphone, Shield, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/",           label: "Control",    sublabel: "Centro de control",  icon: Activity  },
-  { href: "/ambulancia", label: "Ambulancia", sublabel: "App de campo",       icon: Smartphone },
-  { href: "/camaras",    label: "Cámaras",   sublabel: "Monitor de video",   icon: Camera    },
-  { href: "/resultados", label: "Resultados", sublabel: "Análisis de misión", icon: BarChart3 },
+  { href: "/",                label: "Control",        sublabel: "Centro de control",   icon: Activity   },
+  { href: "/ambulancia",      label: "Ambulancia",     sublabel: "App de campo",        icon: Smartphone },
+  { href: "/camaras",         label: "Cámaras",        sublabel: "Monitor de video",    icon: Camera     },
+  { href: "/resultados",      label: "Resultados",     sublabel: "Análisis de misión",  icon: BarChart3  },
+  { href: "/infraestructura", label: "Infraestructura",sublabel: "Arquitectura",        icon: Layers     },
 ];
 
 export function NavSidebar() {
