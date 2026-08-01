@@ -83,7 +83,7 @@ export function MissionPanel() {
                   <MapPin className="w-3 h-3 text-rose-400 mt-0.5 shrink-0" />
                   <div>
                     <p className="text-[9px] text-muted-foreground/50 uppercase tracking-wider">Origen</p>
-                    <p className="text-[11px] text-foreground/80 font-medium">HECA</p>
+                    <p className="text-[11px] text-foreground/80 font-medium">H. del Centenario</p>
                   </div>
                 </div>
                 <div className="ml-1.5 w-px h-3 bg-border" />
@@ -91,7 +91,7 @@ export function MissionPanel() {
                   <MapPin className="w-3 h-3 text-primary mt-0.5 shrink-0" />
                   <div>
                     <p className="text-[9px] text-muted-foreground/50 uppercase tracking-wider">Destino</p>
-                    <p className="text-[11px] text-foreground/80 font-medium">H. del Centenario</p>
+                    <p className="text-[11px] text-foreground/80 font-medium">HECA</p>
                   </div>
                 </div>
                 {phase === "rerouted" && (

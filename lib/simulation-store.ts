@@ -157,7 +157,7 @@ const SEGMENTS_INITIAL: RouteSegment[] = [
   },
   {
     id: "s4",
-    label: "Pellegrini → Hospital Central",
+    label: "Pellegrini → HECA",
     from: "int4",
     to: "destination",
     blocked: false,
@@ -221,9 +221,16 @@ const CAMERAS_INITIAL: Camera[] = [
   },
 ];
 
-// Segment timing (seconds each segment takes)
-const SEGMENT_DURATIONS = [8, 12, 10, 10, 8];
-const SEGMENT_DURATIONS_ALT = [8, 12, 14, 8]; // bypass s2, goes s0→s1→s2alt→s4
+// Segment timing (seconds each segment takes) — compressed simulation time
+const SEGMENT_DURATIONS = [8, 12, 10, 10, 8]; // total 48s
+// Detour is intentionally LONGER than the main route so the reroute produces a
+// visible ETA bump on the chart (a block forces a longer path).
+const SEGMENT_DURATIONS_ALT = [8, 12, 22, 16]; // bypass s2, goes s0→s1→s2alt→s4 (total 58s)
+
+// Real-world reference duration the compressed sim maps onto, so the ETA chart
+// is displayed in meaningful minutes:seconds instead of the 48s sim clock.
+const REAL_TOTAL_SECONDS = 502; // 8m 22s optimized real mission
+const BLOCK_ETA_PENALTY = 45; // extra seconds added to ETA while a block is active
 
 // How many seconds before reaching an intersection does the light start preparing?
 const PREP_LEAD = 4;
@@ -275,7 +282,7 @@ export const useSimulation = create<SimulationState>((set, get) => ({
         {
           id: "ev0",
           time: makeTimestamp(0),
-          message: "Misión iniciada. Ambulancia A-12 en ruta a Hospital Central.",
+          message: "Misión iniciada. Ambulancia A-12 en ruta desde H. del Centenario a HECA.",
           type: "success",
         },
         {
@@ -401,11 +408,22 @@ export const useSimulation = create<SimulationState>((set, get) => ({
       return { ...s, active: idx === segIdx };
     });
 
-    // ETA
-    const remainingSeconds = Math.max(0, totalDuration - elapsed);
+    // ETA — map the compressed sim clock onto real-world seconds so the chart
+    // renders in meaningful minutes instead of the 48s sim duration.
+    const progress = Math.min(1, elapsed / totalDuration);
+    const realElapsed = Math.round(progress * REAL_TOTAL_SECONDS);
+    let realETA = Math.max(0, REAL_TOTAL_SECONDS - realElapsed);
+    // While rerouting on the longer detour the ETA temporarily rises — this is
+    // what makes the "change" clearly visible on the graph.
+    if (state.phase === "rerouted" && !isCompleted) {
+      const reroutePenalty = Math.round(
+        BLOCK_ETA_PENALTY * (1 - progress)
+      );
+      realETA += reroutePenalty;
+    }
     const etaHistory = [
       ...state.etaHistory,
-      { t: elapsed, eta: remainingSeconds },
+      { t: realElapsed, eta: realETA },
     ];
 
     // Timeline events for intersections

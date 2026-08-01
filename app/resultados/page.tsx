@@ -5,8 +5,8 @@ import { SimulationTicker } from "@/components/simulation-ticker";
 import { PageHeader } from "@/components/page-header";
 import { useSimulation } from "@/lib/simulation-store";
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -40,10 +40,11 @@ const STATIC_ETA = [
   { t: 120, eta: 382 },
   { t: 150, eta: 352 },
   { t: 180, eta: 322 },
-  // Block event around t=180 causes ETA jump
-  { t: 210, eta: 340 },
-  { t: 240, eta: 310 },
-  { t: 270, eta: 278 },
+  // Block detected around t=190 — ETA spikes up while the detour is calculated
+  { t: 195, eta: 398 },
+  { t: 210, eta: 372 },
+  { t: 240, eta: 320 },
+  { t: 270, eta: 282 },
   { t: 300, eta: 248 },
   { t: 330, eta: 218 },
   { t: 360, eta: 188 },
@@ -64,6 +65,13 @@ function formatMMSS(seconds: number) {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   return `${m}m ${s}s`;
+}
+
+// Compact clock format for axis ticks, e.g. 502 -> "8:22"
+function formatClock(seconds: number) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.round(seconds % 60);
+  return `${m}:${String(s).padStart(2, "0")}`;
 }
 
 export default function ResultadosPage() {
@@ -165,24 +173,37 @@ export default function ResultadosPage() {
                   Tiempo estimado de llegada en segundos a lo largo de la misión
                 </p>
                 <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={displayData}>
+                  <AreaChart
+                    data={displayData}
+                    margin={{ top: 8, right: 12, bottom: 0, left: 0 }}
+                  >
+                    <defs>
+                      <linearGradient id="etaFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#22c55e" stopOpacity={0.35} />
+                        <stop offset="100%" stopColor="#22c55e" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
                     <CartesianGrid
                       strokeDasharray="3 3"
                       stroke="oklch(1 0 0 / 6%)"
                     />
                     <XAxis
                       dataKey="t"
-                      tickFormatter={(v) => `${Math.floor(v / 60)}m`}
+                      type="number"
+                      domain={[0, "dataMax"]}
+                      tickCount={7}
+                      tickFormatter={formatClock}
                       tick={{ fill: "#6b7280", fontSize: 10 }}
                       axisLine={{ stroke: "oklch(1 0 0 / 8%)" }}
                       tickLine={false}
                     />
                     <YAxis
-                      tickFormatter={(v) => `${Math.floor(v / 60)}m`}
+                      domain={[0, "auto"]}
+                      tickFormatter={formatClock}
                       tick={{ fill: "#6b7280", fontSize: 10 }}
                       axisLine={false}
                       tickLine={false}
-                      width={30}
+                      width={42}
                     />
                     <Tooltip
                       contentStyle={{
@@ -192,8 +213,8 @@ export default function ResultadosPage() {
                         fontSize: "11px",
                         color: "#e5e7eb",
                       }}
-                      formatter={(v: number) => [formatMMSS(v), "ETA"]}
-                      labelFormatter={(l) => `T+${l}s`}
+                      formatter={(v: number) => [formatMMSS(v), "ETA restante"]}
+                      labelFormatter={(l) => `Transcurrido: ${formatMMSS(Number(l))}`}
                     />
                     {blockT > 0 && (
                       <ReferenceLine
@@ -201,23 +222,34 @@ export default function ResultadosPage() {
                         stroke="#f59e0b"
                         strokeDasharray="4 4"
                         label={{
-                          value: "Bloqueo",
+                          value: "Bloqueo / reruteo",
                           fill: "#f59e0b",
                           fontSize: 9,
-                          position: "top",
+                          position: "insideTopRight",
                         }}
                       />
                     )}
-                    <Line
+                    <Area
                       type="monotone"
                       dataKey="eta"
                       stroke="#22c55e"
-                      strokeWidth={2}
+                      strokeWidth={2.5}
+                      fill="url(#etaFill)"
                       dot={false}
-                      activeDot={{ r: 4, fill: "#22c55e" }}
+                      activeDot={{ r: 4, fill: "#22c55e", stroke: "#0a0a0a", strokeWidth: 2 }}
+                      isAnimationActive={false}
                     />
-                  </LineChart>
+                  </AreaChart>
                 </ResponsiveContainer>
+                <p className="text-[11px] text-muted-foreground/70 leading-relaxed mt-3 pt-3 border-t border-border">
+                  La curva muestra el tiempo restante estimado hasta el hospital,
+                  que baja a medida que la ambulancia avanza por el corredor
+                  coordinado. El repunte marcado en{" "}
+                  <span className="text-amber-400">Bloqueo / reruteo</span> es
+                  cuando se detecta una intersección obstruida: el ETA sube unos
+                  segundos mientras el sistema calcula el desvío, y luego retoma
+                  el descenso hasta llegar a 0:00.
+                </p>
               </div>
 
               {/* Before/After bar */}
