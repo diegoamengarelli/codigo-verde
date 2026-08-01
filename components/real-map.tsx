@@ -4,106 +4,107 @@ import { useEffect, useRef } from "react";
 import { useSimulation } from "@/lib/simulation-store";
 import type { TrafficLightState } from "@/lib/simulation-store";
 
+// ---------------------------------------------------------------------------
 // Real Rosario coordinates
-// HECA (Hospital de Emergencias Clemente Alvarez): -32.9495, -60.6782
-// Hospital Provincial del Centenario (destination): -32.9391, -60.6464
+// Origin:      HECA — Hospital de Emergencias Clemente Alvarez
+// Destination: Hospital Provincial del Centenario
+// Route along: Av. Pellegrini → Bv. Oroño → Córdoba → Laprida → Urquiza
+// ---------------------------------------------------------------------------
 
-const ORIGIN_LATLNG: [number, number] = [-32.9495, -60.6782];
-const DEST_LATLNG: [number, number] = [-32.9391, -60.6464];
+const ORIGIN:      [number, number] = [-32.9571, -60.6910]; // HECA
+const DEST:        [number, number] = [-32.9449, -60.6399]; // Hosp. del Centenario
 
-// Real intersections along the route
-const INTERSECTION_COORDS: Record<string, [number, number]> = {
-  int1: [-32.9462, -60.6717], // Bv. Oroño y Córdoba
-  int2: [-32.9437, -60.6641], // Córdoba y Rioja
-  int3: [-32.9414, -60.6551], // Rioja y San Luis
-  int4: [-32.9397, -60.6504], // San Luis y Pellegrini
+// Real street intersections along the route (lat, lng)
+const INTERSECTIONS: Record<string, [number, number]> = {
+  int1: [-32.9467, -60.6634], // Bv. Oroño & Av. Córdoba
+  int2: [-32.9448, -60.6529], // Av. Córdoba & Laprida
+  int3: [-32.9439, -60.6474], // Laprida & San Luis
+  int4: [-32.9430, -60.6432], // San Luis & Pellegrini
 };
 
-// Route polyline: origin -> int1 -> int2 -> int3 -> int4 -> dest
-const ROUTE_COORDS: [number, number][] = [
-  ORIGIN_LATLNG,
-  INTERSECTION_COORDS.int1,
-  INTERSECTION_COORDS.int2,
-  INTERSECTION_COORDS.int3,
-  INTERSECTION_COORDS.int4,
-  DEST_LATLNG,
-];
+// OSRM coordinate string helper  (OSRM expects lng,lat)
+function toOSRM(pts: [number, number][]): string {
+  return pts.map(([lat, lng]) => `${lng},${lat}`).join(";");
+}
 
-// Alt route skips int3: int2 -> int4 via Balcarce
-const ALT_ROUTE_COORDS: [number, number][] = [
-  ORIGIN_LATLNG,
-  INTERSECTION_COORDS.int1,
-  INTERSECTION_COORDS.int2,
-  [-32.9422, -60.6575], // Balcarce mid-point
-  INTERSECTION_COORDS.int4,
-  DEST_LATLNG,
-];
+// Fetch a route geometry (GeoJSON coords [lng,lat]) from the public OSRM API
+async function fetchRoute(waypoints: [number, number][]): Promise<[number, number][]> {
+  const coords = toOSRM(waypoints);
+  const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`;
+  const res = await fetch(url, { mode: "cors" });
+  if (!res.ok) throw new Error("OSRM error");
+  const data = await res.json();
+  // OSRM returns [lng, lat] — flip to [lat, lng] for Leaflet
+  return data.routes[0].geometry.coordinates.map(([lng, lat]: [number, number]) => [lat, lng] as [number, number]);
+}
 
 const LIGHT_COLORS: Record<TrafficLightState, string> = {
-  normal:    "#6b7280",
-  preparing: "#f59e0b",
-  priority:  "#22c55e",
-  traversing:"#22c55e",
-  recovering:"#38bdf8",
+  normal:     "#6b7280",
+  preparing:  "#f59e0b",
+  priority:   "#22c55e",
+  traversing: "#22c55e",
+  recovering: "#38bdf8",
 };
 
-// Get ambulance lat/lng based on active segment
+// ---------------------------------------------------------------------------
+// Determine ambulance position based on active segment progress
+// ---------------------------------------------------------------------------
 function getAmbulancePosition(
   segments: ReturnType<typeof useSimulation.getState>["segments"],
   phase: string
 ): [number, number] {
-  const activeSeg = segments.find((s) => s.active);
-  if (phase === "completed") return DEST_LATLNG;
-  if (!activeSeg) return ORIGIN_LATLNG;
+  if (phase === "completed") return DEST;
+  if (phase === "idle")      return ORIGIN;
+  const active = segments.find((s) => s.active);
+  if (!active) return ORIGIN;
 
-  const segCoords: Record<string, [[number, number], [number, number]]> = {
-    s0:    [ORIGIN_LATLNG,               INTERSECTION_COORDS.int1],
-    s1:    [INTERSECTION_COORDS.int1,    INTERSECTION_COORDS.int2],
-    s2:    [INTERSECTION_COORDS.int2,    INTERSECTION_COORDS.int3],
-    s3:    [INTERSECTION_COORDS.int3,    INTERSECTION_COORDS.int4],
-    s4:    [INTERSECTION_COORDS.int4,    DEST_LATLNG],
-    s2alt: [INTERSECTION_COORDS.int2,    INTERSECTION_COORDS.int4],
+  const segMid: Record<string, [number, number]> = {
+    s0:    midpoint(ORIGIN,               INTERSECTIONS.int1),
+    s1:    midpoint(INTERSECTIONS.int1,   INTERSECTIONS.int2),
+    s2:    midpoint(INTERSECTIONS.int2,   INTERSECTIONS.int3),
+    s3:    midpoint(INTERSECTIONS.int3,   INTERSECTIONS.int4),
+    s4:    midpoint(INTERSECTIONS.int4,   DEST),
+    s2alt: midpoint(INTERSECTIONS.int2,   INTERSECTIONS.int4),
   };
-
-  const pair = segCoords[activeSeg.id];
-  if (!pair) return ORIGIN_LATLNG;
-  return [
-    (pair[0][0] + pair[1][0]) / 2,
-    (pair[0][1] + pair[1][1]) / 2,
-  ];
+  return segMid[active.id] ?? ORIGIN;
 }
 
+function midpoint(a: [number, number], b: [number, number]): [number, number] {
+  return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+}
+
+// ---------------------------------------------------------------------------
 export function RealMap() {
-  const mapRef = useRef<HTMLDivElement>(null);
+  const mapRef        = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
-  const layersRef = useRef<any>({});
+  const layersRef     = useRef<Record<string, any>>({});
 
   const intersections = useSimulation((s) => s.intersections);
-  const segments = useSimulation((s) => s.segments);
-  const phase = useSimulation((s) => s.phase);
+  const segments      = useSimulation((s) => s.segments);
+  const phase         = useSimulation((s) => s.phase);
 
-  // Initialize map once
+  // -------------------------------------------------------------------------
+  // Initialize map + fetch real routes from OSRM
+  // -------------------------------------------------------------------------
   useEffect(() => {
     if (typeof window === "undefined" || !mapRef.current || mapInstanceRef.current) return;
 
-    // Dynamically import leaflet to avoid SSR issues
-    import("leaflet").then((L) => {
+    import("leaflet").then(async (L) => {
       // Fix default icon paths broken by webpack
       delete (L.Icon.Default.prototype as any)._getIconUrl;
       L.Icon.Default.mergeOptions({
-        iconUrl:       "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-        iconRetinaUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-        shadowUrl:     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+        iconUrl:        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+        iconRetinaUrl:  "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+        shadowUrl:      "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
       });
 
       const map = L.map(mapRef.current!, {
-        center: [-32.9445, -60.664],
+        center: [-32.948, -60.666],
         zoom: 14,
         zoomControl: true,
         attributionControl: true,
       });
 
-      // Dark OSM tile layer (CartoDB Dark Matter — no API key needed)
       L.tileLayer(
         "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
         {
@@ -116,112 +117,125 @@ export function RealMap() {
 
       mapInstanceRef.current = map;
 
-      // Draw static elements once
-      // Origin marker
-      const originIcon = L.divIcon({
-        html: `<div style="width:14px;height:14px;border-radius:50%;background:#6b7280;border:2px solid #9ca3af;box-shadow:0 0 6px #6b7280"></div>`,
-        iconSize: [14, 14],
-        iconAnchor: [7, 7],
-        className: "",
-      });
-      L.marker(ORIGIN_LATLNG, { icon: originIcon })
-        .addTo(map)
-        .bindTooltip("HECA", { permanent: true, direction: "left", className: "map-tooltip" });
-
-      // Destination marker
-      const destIcon = L.divIcon({
-        html: `<div style="width:14px;height:14px;border-radius:50%;background:#374151;border:2px solid #6b7280;box-shadow:0 0 6px #374151"></div>`,
-        iconSize: [14, 14],
-        iconAnchor: [7, 7],
-        className: "",
-      });
-      layersRef.current.destMarker = L.marker(DEST_LATLNG, { icon: destIcon })
-        .addTo(map)
-        .bindTooltip("Hospital Central", { permanent: true, direction: "right", className: "map-tooltip" });
-
-      // Camera markers
-      const cameraCoords: Array<{ id: string; latlng: [number, number] }> = [
-        { id: "C1", latlng: INTERSECTION_COORDS.int1 },
-        { id: "C2", latlng: INTERSECTION_COORDS.int2 },
-        { id: "C3", latlng: INTERSECTION_COORDS.int4 },
-      ];
-      cameraCoords.forEach(({ id, latlng }) => {
-        const camIcon = L.divIcon({
-          html: `<div style="background:#1d4ed8;color:white;font-size:9px;font-weight:bold;padding:2px 5px;border-radius:3px;opacity:0.85">${id}</div>`,
-          iconSize: [24, 16],
-          iconAnchor: [12, 8],
-          className: "",
-        });
-        L.marker(latlng, { icon: camIcon }).addTo(map);
-      });
-
-      // Base route polyline (dim, always shown)
-      layersRef.current.routeLine = L.polyline(ROUTE_COORDS, {
-        color: "#374151",
-        weight: 4,
-        opacity: 0.5,
-      }).addTo(map);
-
-      // Active route overlay (bright, updated dynamically)
-      layersRef.current.activeRouteLine = L.polyline([], {
-        color: "#22c55e",
-        weight: 5,
-        opacity: 0.9,
-      }).addTo(map);
-
-      // Alt route (dashed, shown when rerouted)
-      layersRef.current.altRouteLine = L.polyline(ALT_ROUTE_COORDS, {
-        color: "#38bdf8",
-        weight: 4,
-        opacity: 0,
-        dashArray: "8 6",
-      }).addTo(map);
-
-      // Blocked segment overlay
-      layersRef.current.blockedLine = L.polyline(
-        [INTERSECTION_COORDS.int2, INTERSECTION_COORDS.int3],
-        { color: "#ef4444", weight: 5, opacity: 0, dashArray: "4 4" }
-      ).addTo(map);
-
-      // Intersection circles
-      layersRef.current.intersectionCircles = {};
-      Object.entries(INTERSECTION_COORDS).forEach(([id, latlng]) => {
-        const circle = L.circleMarker(latlng, {
-          radius: 9,
-          fillColor: "#6b7280",
-          fillOpacity: 0.8,
-          color: "#9ca3af",
-          weight: 1.5,
-        }).addTo(map);
-        layersRef.current.intersectionCircles[id] = circle;
-      });
-
-      // Ambulance marker (hidden initially)
-      const ambulanceIcon = L.divIcon({
-        html: `<div style="width:16px;height:16px;border-radius:50%;background:#22c55e;border:2px solid white;box-shadow:0 0 10px #22c55e;animation:pulse 1.5s infinite"></div>`,
-        iconSize: [16, 16],
-        iconAnchor: [8, 8],
-        className: "",
-      });
-      layersRef.current.ambulance = L.marker(ORIGIN_LATLNG, {
-        icon: ambulanceIcon,
-        opacity: 0,
-        zIndexOffset: 1000,
-      })
-        .addTo(map)
-        .bindTooltip("A-12", { permanent: true, direction: "top", className: "map-tooltip-green" });
-
-      // Inject CSS for tooltips and animations
+      // ---- Inject tooltip + animation CSS -----------------------------------
       const style = document.createElement("style");
       style.textContent = `
-        .map-tooltip { background: #111827; border: 1px solid #374151; color: #d1d5db; font-size: 11px; padding: 2px 6px; border-radius: 4px; }
-        .map-tooltip-green { background: #052e16; border: 1px solid #22c55e; color: #22c55e; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; }
-        .leaflet-attribution-flag { display: none !important; }
-        .leaflet-control-attribution { font-size: 9px !important; background: rgba(0,0,0,0.5) !important; color: #6b7280 !important; }
-        .leaflet-control-attribution a { color: #6b7280 !important; }
-        @keyframes pulse { 0%,100%{box-shadow:0 0 6px #22c55e} 50%{box-shadow:0 0 18px #22c55e} }
+        .map-tt       { background:#111827!important; border:1px solid #374151!important; color:#d1d5db!important; font-size:11px; padding:2px 6px; border-radius:4px; box-shadow:none!important; }
+        .map-tt-green { background:#052e16!important; border:1px solid #22c55e!important; color:#22c55e!important; font-size:11px; font-weight:700; padding:2px 6px; border-radius:4px; box-shadow:none!important; }
+        .leaflet-tooltip-left::before  { border-left-color:#374151!important; }
+        .leaflet-tooltip-right::before { border-right-color:#374151!important; }
+        .leaflet-tooltip-top::before   { border-top-color:#374151!important; }
+        .leaflet-attribution-flag { display:none!important; }
+        .leaflet-control-attribution { font-size:9px!important; background:rgba(0,0,0,.5)!important; color:#6b7280!important; }
+        .leaflet-control-attribution a { color:#6b7280!important; }
+        @keyframes amb-pulse { 0%,100%{box-shadow:0 0 6px #22c55e} 50%{box-shadow:0 0 18px #22c55e,0 0 32px #22c55e} }
       `;
       document.head.appendChild(style);
+
+      // ---- Static markers ---------------------------------------------------
+      const dotIcon = (color: string, size = 12) => L.divIcon({
+        html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid rgba(255,255,255,.4);box-shadow:0 0 6px ${color}"></div>`,
+        iconSize: [size, size], iconAnchor: [size / 2, size / 2], className: "",
+      });
+
+      L.marker(ORIGIN, { icon: dotIcon("#6b7280") })
+        .addTo(map)
+        .bindTooltip("HECA", { permanent: true, direction: "left", className: "map-tt" });
+
+      layersRef.current.destMarker = L.marker(DEST, { icon: dotIcon("#6b7280") })
+        .addTo(map)
+        .bindTooltip("Hosp. Centenario", { permanent: true, direction: "right", className: "map-tt" });
+
+      // Camera badges at int1, int2, int4
+      [
+        { id: "C1", latlng: INTERSECTIONS.int1 },
+        { id: "C2", latlng: INTERSECTIONS.int2 },
+        { id: "C3", latlng: INTERSECTIONS.int4 },
+      ].forEach(({ id, latlng }) => {
+        const icon = L.divIcon({
+          html: `<div style="background:#1d4ed8;color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;opacity:.85;white-space:nowrap">${id}</div>`,
+          iconSize: [26, 16], iconAnchor: [13, 8], className: "",
+        });
+        L.marker(latlng as [number, number], { icon }).addTo(map);
+      });
+
+      // ---- Base route polylines (grey placeholder while fetching) -----------
+      layersRef.current.mainRouteLine = L.polyline(
+        [ORIGIN, ...Object.values(INTERSECTIONS), DEST] as [number,number][],
+        { color: "#4b5563", weight: 5, opacity: 0.8 }
+      ).addTo(map);
+
+      layersRef.current.altRouteLine = L.polyline([], {
+        color: "#38bdf8", weight: 4, opacity: 0, dashArray: "10 6",
+      }).addTo(map);
+
+      layersRef.current.activeRouteLine = L.polyline([], {
+        color: "#22c55e", weight: 5, opacity: 0.9,
+      }).addTo(map);
+
+      layersRef.current.blockedLine = L.polyline(
+        [INTERSECTIONS.int2, INTERSECTIONS.int3],
+        { color: "#ef4444", weight: 5, opacity: 0, dashArray: "5 5" }
+      ).addTo(map);
+
+      // ---- Intersection circles ---------------------------------------------
+      layersRef.current.intCircles = {} as Record<string, any>;
+      Object.entries(INTERSECTIONS).forEach(([id, latlng]) => {
+        layersRef.current.intCircles[id] = L.circleMarker(latlng as [number, number], {
+          radius: 9, fillColor: "#6b7280", fillOpacity: 0.8,
+          color: "#9ca3af", weight: 1.5,
+        }).addTo(map);
+      });
+
+      // ---- Ambulance marker -------------------------------------------------
+      layersRef.current.ambulance = L.marker(ORIGIN, {
+        icon: L.divIcon({
+          html: `<div style="width:16px;height:16px;border-radius:50%;background:#22c55e;border:2px solid #fff;animation:amb-pulse 1.5s infinite"></div>`,
+          iconSize: [16, 16], iconAnchor: [8, 8], className: "",
+        }),
+        opacity: 0,
+        zIndexOffset: 1000,
+      }).addTo(map)
+        .bindTooltip("A-12", { permanent: true, direction: "top", className: "map-tt-green" });
+
+      // ---- Fetch real street routes from OSRM (fire & forget) ---------------
+      const mainWaypoints: [number, number][] = [
+        ORIGIN,
+        INTERSECTIONS.int1,
+        INTERSECTIONS.int2,
+        INTERSECTIONS.int3,
+        INTERSECTIONS.int4,
+        DEST,
+      ];
+      const altWaypoints: [number, number][] = [
+        ORIGIN,
+        INTERSECTIONS.int1,
+        INTERSECTIONS.int2,
+        INTERSECTIONS.int4,
+        DEST,
+      ];
+
+      try {
+        const [mainCoords, altCoords] = await Promise.all([
+          fetchRoute(mainWaypoints),
+          fetchRoute(altWaypoints),
+        ]);
+        layersRef.current.mainRouteGeom = mainCoords;
+        layersRef.current.altRouteGeom  = altCoords;
+
+        // Replace placeholder with real geometry
+        layersRef.current.mainRouteLine.setLatLngs(mainCoords);
+        layersRef.current.altRouteLine.setLatLngs(altCoords);
+
+        // Fit map to route bounds with comfortable padding
+        map.fitBounds(L.polyline(mainCoords).getBounds(), {
+          paddingTopLeft:     [60, 40],
+          paddingBottomRight: [60, 40],
+          maxZoom: 15,
+        });
+      } catch {
+        // OSRM unavailable — keep straight-line placeholders
+      }
     });
 
     return () => {
@@ -229,101 +243,84 @@ export function RealMap() {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
+      if (mapRef.current) {
+        delete (mapRef.current as any)._leaflet_id;
+      }
     };
   }, []);
 
-  // Update dynamic elements when simulation state changes
+  // -------------------------------------------------------------------------
+  // Reactively update markers / lines when simulation state changes
+  // -------------------------------------------------------------------------
   useEffect(() => {
-    if (!mapInstanceRef.current || !layersRef.current.intersectionCircles) return;
+    if (!mapInstanceRef.current || !layersRef.current.intCircles) return;
 
     import("leaflet").then((L) => {
-      // Update intersection circle colors
+      // Intersection circle colors
       intersections.forEach((int) => {
-        const circle = layersRef.current.intersectionCircles[int.id];
+        const circle = layersRef.current.intCircles[int.id];
         if (!circle) return;
-        const color = LIGHT_COLORS[int.state];
+        const col = LIGHT_COLORS[int.state];
         circle.setStyle({
-          fillColor: color,
-          color: color,
-          fillOpacity: int.state === "normal" ? 0.5 : 0.9,
-          weight: int.state === "normal" ? 1.5 : 2.5,
+          fillColor: col, color: col,
+          fillOpacity: int.state === "normal" ? 0.45 : 0.9,
+          weight:      int.state === "normal" ? 1.5 : 2.5,
         });
       });
 
-      const isRerouted = phase === "rerouted" || segments.find((s) => s.id === "s2alt" && s.active);
-      const isRunning = phase === "running" || phase === "rerouted" || phase === "completed";
+      const isRerouted = phase === "rerouted" || !!segments.find((s) => s.id === "s2alt" && s.active);
+      const isRunning  = phase === "running" || phase === "rerouted" || phase === "completed";
 
-      // Show/hide ambulance
-      if (layersRef.current.ambulance) {
-        const pos = getAmbulancePosition(segments, phase);
-        layersRef.current.ambulance.setLatLng(pos);
-        layersRef.current.ambulance.setOpacity(isRunning ? 1 : 0);
+      // Ambulance position & visibility
+      const pos = getAmbulancePosition(segments, phase);
+      layersRef.current.ambulance?.setLatLng(pos);
+      layersRef.current.ambulance?.setOpacity(isRunning ? 1 : 0);
+
+      // Destination marker turns green on arrival
+      if (phase === "completed") {
+        layersRef.current.destMarker?.setIcon(L.divIcon({
+          html: `<div style="width:14px;height:14px;border-radius:50%;background:#22c55e;border:2px solid #fff;box-shadow:0 0 8px #22c55e"></div>`,
+          iconSize: [14, 14], iconAnchor: [7, 7], className: "",
+        }));
       }
 
-      // Update destination marker color on completion
-      if (layersRef.current.destMarker && phase === "completed") {
-        const destIcon = L.divIcon({
-          html: `<div style="width:16px;height:16px;border-radius:50%;background:#22c55e;border:2px solid white;box-shadow:0 0 10px #22c55e"></div>`,
-          iconSize: [16, 16],
-          iconAnchor: [8, 8],
-          className: "",
-        });
-        layersRef.current.destMarker.setIcon(destIcon);
-      }
+      // Build active path geometry
+      const mainGeom: [number,number][] = layersRef.current.mainRouteGeom ?? [];
+      const altGeom:  [number,number][] = layersRef.current.altRouteGeom  ?? [];
 
-      // Active route line: build from currently passed + active segments
-      const segCoordMap: Record<string, [number, number][]> = {
-        s0:    [ORIGIN_LATLNG, INTERSECTION_COORDS.int1],
-        s1:    [INTERSECTION_COORDS.int1, INTERSECTION_COORDS.int2],
-        s2:    [INTERSECTION_COORDS.int2, INTERSECTION_COORDS.int3],
-        s3:    [INTERSECTION_COORDS.int3, INTERSECTION_COORDS.int4],
-        s4:    [INTERSECTION_COORDS.int4, DEST_LATLNG],
-        s2alt: [INTERSECTION_COORDS.int2, INTERSECTION_COORDS.int4],
-      };
-
-      // Build active route from all non-blocked, non-alternative segments that have been/are active
-      const orderedSegIds = isRerouted
+      const segIndexMap: Record<string, number> = { s0: 0, s1: 1, s2: 2, s3: 3, s4: 4, s2alt: 2 };
+      const orderedIds = isRerouted
         ? ["s0", "s1", "s2alt", "s4"]
         : ["s0", "s1", "s2", "s3", "s4"];
 
-      const activeIdx = orderedSegIds.findIndex((id) => segments.find((s) => s.id === id && s.active));
-      const coveredIds = activeIdx >= 0 ? orderedSegIds.slice(0, activeIdx + 1) : [];
+      const activeIdx = orderedIds.findIndex((id) => segments.find((s) => s.id === id && s.active));
 
-      const activePath: [number, number][] = [];
-      coveredIds.forEach((id) => {
-        const coords = segCoordMap[id];
-        if (!coords) return;
-        if (activePath.length === 0) activePath.push(coords[0]);
-        activePath.push(coords[1]);
-      });
+      // For the active overlay we slice the fetched geometry proportionally
+      const geomToSlice = isRerouted ? altGeom : mainGeom;
+      let activeGeom: [number,number][] = [];
+
       if (phase === "completed") {
-        orderedSegIds.forEach((id) => {
-          const coords = segCoordMap[id];
-          if (!coords) return;
-          if (activePath.length === 0) activePath.push(coords[0]);
-          activePath.push(coords[1]);
-        });
+        activeGeom = geomToSlice;
+      } else if (activeIdx >= 0 && geomToSlice.length > 0) {
+        const fraction = (activeIdx + 1) / orderedIds.length;
+        activeGeom = geomToSlice.slice(0, Math.floor(geomToSlice.length * fraction));
       }
-      layersRef.current.activeRouteLine?.setLatLngs(activePath);
 
-      // Blocked line
-      const isBlocked = segments.find((s) => s.id === "s2" && s.blocked);
+      layersRef.current.activeRouteLine?.setLatLngs(activeGeom);
+
+      // Blocked / alt visibility
+      const isBlocked = !!segments.find((s) => s.id === "s2" && s.blocked);
       layersRef.current.blockedLine?.setStyle({ opacity: isBlocked ? 0.9 : 0 });
-
-      // Alt route
-      layersRef.current.altRouteLine?.setStyle({
-        opacity: isRerouted ? 0.7 : 0,
-      });
-      layersRef.current.routeLine?.setStyle({
-        opacity: isRerouted ? 0.2 : 0.5,
-      });
+      layersRef.current.altRouteLine?.setStyle({ opacity: isRerouted ? 0.7 : 0 });
+      layersRef.current.mainRouteLine?.setStyle({ opacity: isRerouted ? 0.2 : 0.5 });
     });
   }, [intersections, segments, phase]);
 
   return (
     <div className="relative w-full h-full rounded-lg overflow-hidden border border-border">
       <div ref={mapRef} className="w-full h-full" />
-      {/* Legend overlay */}
+
+      {/* Legend */}
       <div className="absolute bottom-3 left-3 z-[1000] bg-background/90 border border-border rounded-md px-3 py-2 text-xs space-y-1 pointer-events-none">
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-green-500 inline-block" />
@@ -342,7 +339,7 @@ export function RealMap() {
           <span className="text-muted-foreground">Bloqueado</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-3 h-0.5 bg-sky-400 inline-block border-dashed" />
+          <span className="w-3 h-0.5 bg-sky-400 inline-block" style={{ borderTop: "2px dashed" }} />
           <span className="text-muted-foreground">Ruta alt.</span>
         </div>
       </div>
