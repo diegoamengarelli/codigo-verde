@@ -241,6 +241,15 @@ export default function ResultadosPage() {
                     />
                   </AreaChart>
                 </ResponsiveContainer>
+                <p className="text-[11px] text-muted-foreground/70 leading-relaxed mt-3 pt-3 border-t border-border">
+                  La curva muestra el tiempo restante estimado hasta el hospital,
+                  que baja a medida que la ambulancia avanza por el corredor
+                  coordinado. El repunte marcado en{" "}
+                  <span className="text-amber-400">Bloqueo / reruteo</span> es
+                  cuando se detecta una intersección obstruida: el ETA sube unos
+                  segundos mientras el sistema calcula el desvío, y luego retoma
+                  el descenso hasta llegar a 0:00.
+                </p>
               </div>
 
               {/* Before/After bar */}
